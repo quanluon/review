@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="64" fill="#000000"/>
+  <path d="M256 128l128 96-128 96-128-96z" fill="#ffffff"/>
+  <text x="256" y="380" font-family="system-ui, sans-serif" font-size="120" font-weight="bold" text-anchor="middle" fill="#ffffff">N</text>
+</svg>
+
