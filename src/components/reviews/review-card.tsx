@@ -3,6 +3,9 @@
 import Link from "next/link";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { FollowButton } from "@/components/users/follow-button";
+import { ImageLightbox } from "@/components/reviews/image-lightbox";
+import { useAuth } from "@/hooks/use-auth";
 import type { ReviewWithRelations } from "@/lib/db/reviews";
 
 interface ReviewCardProps {
@@ -10,6 +13,8 @@ interface ReviewCardProps {
 }
 
 export function ReviewCard({ review }: ReviewCardProps) {
+  const { isAuthenticated } = useAuth();
+  
   const renderStars = (rating: number) => {
     return "★".repeat(rating) + "☆".repeat(5 - rating);
   };
@@ -46,15 +51,25 @@ export function ReviewCard({ review }: ReviewCardProps) {
             <AvatarFallback>{getInitials(review.user.name)}</AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-semibold text-sm">{review.user.name}</span>
-              <span className="text-gray-400">·</span>
-              <Link
-                href={`/app/places/${review.place.id}`}
-                className="text-sm text-blue-600 hover:underline truncate"
-              >
-                {review.place.name}
-              </Link>
+            <div className="flex items-start gap-2 flex-wrap">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-semibold text-sm line-clamp-1" title={review.user.name}>
+                  {review.user.name}
+                </span>
+                {isAuthenticated && (
+                  <FollowButton userId={review.user.id} userName={review.user.name} />
+                )}
+              </div>
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                <span className="text-gray-400">·</span>
+                <Link
+                  href={`/app/places/${review.place.id}`}
+                  className="text-sm text-blue-600 hover:underline line-clamp-1 flex-1"
+                  title={review.place.name}
+                >
+                  {review.place.name}
+                </Link>
+              </div>
             </div>
             <div className="flex items-center gap-2 mt-1">
               <span className="text-yellow-500 text-sm">
@@ -67,23 +82,15 @@ export function ReviewCard({ review }: ReviewCardProps) {
           </div>
         </div>
       </CardHeader>
-      {review.text && (
+      {(review.text || (review.review_images && review.review_images.length > 0)) && (
         <CardContent className="pt-0">
-          <p className="text-sm text-gray-700 whitespace-pre-wrap">
-            {review.text}
-          </p>
+          {review.text && (
+            <p className="text-sm text-gray-700 whitespace-pre-wrap">
+              {review.text}
+            </p>
+          )}
           {review.review_images && review.review_images.length > 0 && (
-            <div className="mt-3 grid grid-cols-2 gap-2">
-              {review.review_images.slice(0, 4).map((img) => (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  key={img.id}
-                  src={img.image_url}
-                  alt="Review"
-                  className="rounded-lg object-cover w-full h-32"
-                />
-              ))}
-            </div>
+            <ImageLightbox images={review.review_images} />
           )}
         </CardContent>
       )}

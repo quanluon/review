@@ -98,7 +98,11 @@ export function CreateReviewDialog({
       setSelectedFiles([]);
       setPreviewUrls([]);
       setOpen(false);
-      onSuccess?.();
+      
+      // Small delay to ensure data is committed, then trigger refetch
+      setTimeout(() => {
+        onSuccess?.();
+      }, 100);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create review");
     } finally {

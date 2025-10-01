@@ -72,17 +72,22 @@ export function useReviews(options: UseReviewsOptions = {}) {
   };
 
   const refresh = async () => {
-    const params = new URLSearchParams();
-    if (options.limit) params.set("limit", options.limit.toString());
-    if (options.placeId) params.set("placeId", options.placeId);
-    if (options.userId) params.set("userId", options.userId);
-    if (options.feed) params.set("feed", "true");
+    try {
+      const params = new URLSearchParams();
+      if (options.limit) params.set("limit", options.limit.toString());
+      if (options.placeId) params.set("placeId", options.placeId);
+      if (options.userId) params.set("userId", options.userId);
+      if (options.feed) params.set("feed", "true");
 
-    const response = await fetch(`/api/reviews?${params}`);
-    const result = await response.json();
+      const response = await fetch(`/api/reviews?${params}`);
+      const result = await response.json();
 
-    if (response.ok) {
-      setReviews(result.data);
+      if (response.ok && result.data) {
+        setReviews(result.data);
+        setError(null);
+      }
+    } catch (err) {
+      console.error("Error refreshing reviews:", err);
     }
   };
 

@@ -34,9 +34,7 @@ export async function updateSession(request: NextRequest) {
   // issues with users being randomly logged out.
 
   // Get user session (but don't block - allow public access)
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  await supabase.auth.getUser();
 
   // Note: Removed auth check - /app routes are now public
   // Only API routes with POST/PATCH/DELETE require authentication

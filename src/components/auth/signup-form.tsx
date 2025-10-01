@@ -106,11 +106,11 @@ export function SignupForm() {
           </Button>
         </CardFooter>
       </form>
-      {!success && (
+      {/* {!success && (
         <CardContent className="pt-0">
           <SocialAuth />
         </CardContent>
-      )}
+      )} */}
     </Card>
   );
 }

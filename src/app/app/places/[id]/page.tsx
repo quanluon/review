@@ -2,13 +2,16 @@
 
 import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { CreateReviewDialog } from "@/components/reviews/create-review-dialog";
 import { ReviewCard } from "@/components/reviews/review-card";
 import { useReviews } from "@/hooks/use-reviews";
 import { useRealtimeReviews } from "@/hooks/use-realtime-reviews";
+import { useAuth } from "@/hooks/use-auth";
 import type { Database } from "@/types/supabase";
 
 type Place = Database["public"]["Tables"]["places"]["Row"];
@@ -20,6 +23,7 @@ export default function PlaceDetailPage({
 }) {
   const resolvedParams = use(params);
   const router = useRouter();
+  const { isAuthenticated } = useAuth();
   const [place, setPlace] = useState<Place | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -34,24 +38,25 @@ export default function PlaceDetailPage({
     initialReviews,
   });
 
-  useEffect(() => {
-    const fetchPlace = async () => {
-      try {
-        const response = await fetch(`/api/places/${resolvedParams.id}`);
-        const result = await response.json();
+  const fetchPlace = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/places/${resolvedParams.id}`);
+      const result = await response.json();
 
-        if (!response.ok) {
-          throw new Error(result.error || "Failed to fetch place");
-        }
-
-        setPlace(result.data);
-      } catch (error) {
-        console.error("Error fetching place:", error);
-      } finally {
-        setLoading(false);
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to fetch place");
       }
-    };
 
+      setPlace(result.data);
+    } catch (error) {
+      console.error("Error fetching place:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchPlace();
   }, [resolvedParams.id]);
 
@@ -81,19 +86,24 @@ export default function PlaceDetailPage({
       <Card>
         <CardHeader>
           <div className="flex items-start justify-between gap-4">
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <div className="flex items-center gap-3 flex-wrap mb-2">
-                <CardTitle className="text-2xl sm:text-3xl">
+                <CardTitle 
+                  className="text-2xl sm:text-3xl break-words"
+                  title={place.name}
+                >
                   {place.name}
                 </CardTitle>
                 {place.type && (
-                  <Badge variant="outline" className="capitalize">
+                  <Badge variant="outline" className="capitalize shrink-0">
                     {place.type}
                   </Badge>
                 )}
               </div>
               {place.address && (
-                <p className="text-gray-600">{place.address}</p>
+                <p className="text-gray-600 break-words" title={place.address}>
+                  {place.address}
+                </p>
               )}
             </div>
           </div>
@@ -113,14 +123,23 @@ export default function PlaceDetailPage({
               {place.review_count === 1 ? "review" : "reviews"}
             </span>
           </div>
-          <CreateReviewDialog
-            placeId={place.id}
-            placeName={place.name}
-            onSuccess={() => {
-              refresh();
-              router.refresh();
-            }}
-          />
+          
+          {isAuthenticated ? (
+            <CreateReviewDialog
+              placeId={place.id}
+              placeName={place.name}
+              onSuccess={() => {
+                refresh();
+                fetchPlace(); // Refresh place data (updated rating)
+              }}
+            />
+          ) : (
+            <Link href="/login">
+              <Button className="w-full sm:w-auto">
+                Sign in to Write Review
+              </Button>
+            </Link>
+          )}
         </CardContent>
       </Card>
 

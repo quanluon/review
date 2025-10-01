@@ -77,9 +77,9 @@ export function LoginForm() {
           </Button>
         </CardFooter>
       </form>
-      <CardContent className="pt-0">
+      {/* <CardContent className="pt-0">
         <SocialAuth />
-      </CardContent>
+      </CardContent> */}
     </Card>
   );
 }

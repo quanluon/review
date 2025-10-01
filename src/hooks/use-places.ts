@@ -77,6 +77,27 @@ export function usePlaces(options: UsePlacesOptions = {}) {
     return result.data;
   };
 
-  return { places, loading, error, createPlace };
+  const refresh = () => {
+    // Force re-fetch by updating a dependency
+    const params = new URLSearchParams();
+    if (options.limit) params.set("limit", options.limit.toString());
+    if (options.orderBy) params.set("orderBy", options.orderBy);
+    if (options.type) params.set("type", options.type);
+    if (options.search) params.set("search", options.search);
+    if (options.trending) params.set("trending", "true");
+
+    fetch(`/api/places?${params}`)
+      .then((r) => r.json())
+      .then((result) => {
+        if (result.data) {
+          setPlaces(result.data);
+        }
+      })
+      .catch((err) => {
+        console.error("Error refreshing places:", err);
+      });
+  };
+
+  return { places, loading, error, createPlace, refresh };
 }
 

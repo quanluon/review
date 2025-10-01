@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
+import { type Coordinates } from "@/hooks/use-geolocation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { LocationPicker } from "@/components/places/location-picker";
 import {
   Dialog,
   DialogContent,
@@ -19,7 +21,11 @@ import { usePlaces } from "@/hooks/use-places";
 
 const PLACE_TYPES = ["restaurant", "cafe", "bar", "shop", "hotel", "other"];
 
-export function CreatePlaceDialog() {
+interface CreatePlaceDialogProps {
+  onSuccess?: () => void;
+}
+
+export function CreatePlaceDialog({ onSuccess }: CreatePlaceDialogProps = {}) {
   const router = useRouter();
   const { isAuthenticated } = useAuth();
   const { createPlace } = usePlaces();
@@ -32,6 +38,7 @@ export function CreatePlaceDialog() {
     address: "",
     type: "restaurant",
   });
+  const [location, setLocation] = useState<Coordinates | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,11 +50,20 @@ export function CreatePlaceDialog() {
         name: formData.name,
         address: formData.address || undefined,
         type: formData.type,
+        lat: location?.latitude,
+        lng: location?.longitude,
       });
 
       setFormData({ name: "", address: "", type: "restaurant" });
+      setLocation(null);
       setOpen(false);
-      window.location.reload(); // Refresh to show new place
+      
+      // Call success callback to refresh list
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        window.location.reload(); // Fallback
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create place");
     } finally {
@@ -125,6 +141,10 @@ export function CreatePlaceDialog() {
                 ))}
               </select>
             </div>
+            <LocationPicker
+              onLocationChange={setLocation}
+              initialLocation={location}
+            />
           </div>
           <DialogFooter>
             <Button type="submit" disabled={loading}>
